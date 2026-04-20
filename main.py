@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template_string
+import os
 
 app = Flask(__name__)
 
@@ -15,13 +16,17 @@ QUESTIONS = [
     {"id": 10, "text": "Which gas do plants absorb?", "a": "Oxygen", "b": "Carbon Dioxide", "c": "Nitrogen", "answer": "b"},
 ]
 
-# template moved to index.html
-TEMPLATE = None
+
+def load_template():
+    path = os.path.join(os.path.dirname(__file__), 'index.html')
+    with open(path, 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 @app.route('/')
 def index():
-    return render_template_string(open('index.html').read(), questions=QUESTIONS, score=None, total=len(QUESTIONS))
+    return render_template_string(load_template(), questions=QUESTIONS, score=None, total=len(QUESTIONS))
+
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -31,7 +36,8 @@ def submit():
         ans = request.form.get(key)
         if ans == q['answer']:
             score += 1
-    return render_template_string(open('index.html').read(), questions=QUESTIONS, score=score, total=len(QUESTIONS))
+    return render_template_string(load_template(), questions=QUESTIONS, score=score, total=len(QUESTIONS))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

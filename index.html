@@ -3,24 +3,56 @@
 <head>
   <meta charset="utf-8">
   <title>Simple MCQ Quiz</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .q { margin-bottom: 12px; }
+    #result h2 { color: #2b7a78; }
+  </style>
 </head>
 <body>
   <h1>MCQ Quiz (10 questions)</h1>
-  {% if score is not none %}
-    <h2>Your score: {{score}} / {{total}}</h2>
-    <a href="/">Try again</a>
-  {% else %}
-    <form method="post" action="/submit">
-      {% for q in questions %}
-        <div style="margin-bottom:12px;">
-          <strong>{{loop.index}}. {{q.text}}</strong><br>
-          <label><input type="radio" name="q{{q.id}}" value="a"> a) {{q.a}}</label><br>
-          <label><input type="radio" name="q{{q.id}}" value="b"> b) {{q.b}}</label><br>
-          <label><input type="radio" name="q{{q.id}}" value="c"> c) {{q.c}}</label><br>
-        </div>
-      {% endfor %}
-      <button type="submit">Submit</button>
-    </form>
-  {% endif %}
+
+  <div id="result" style="display:none"></div>
+
+  <form id="quizForm" method="post" action="/submit">
+    {% for q in questions %}
+      <div class="q">
+        <strong>{{loop.index}}. {{q.text}}</strong><br>
+        <label><input type="radio" name="q{{q.id}}" value="a"> a) {{q.a}}</label><br>
+        <label><input type="radio" name="q{{q.id}}" value="b"> b) {{q.b}}</label><br>
+        <label><input type="radio" name="q{{q.id}}" value="c"> c) {{q.c}}</label><br>
+      </div>
+    {% endfor %}
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    // answers available from server-side QUESTIONS
+    const answers = {{ questions | tojson }};
+    const form = document.getElementById('quizForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault(); // compute on client and avoid full POST
+      let score = 0;
+      for (let i = 0; i < answers.length; i++) {
+        const q = answers[i];
+        const name = 'q' + q.id;
+        const checked = form.querySelector('input[name="' + name + '"]:checked');
+        if (checked && checked.value === q.answer) score++;
+      }
+
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<h2>Your score: ' + score + ' / ' + answers.length + '</h2><a href="#" id="tryAgain">Try again</a>';
+      form.style.display = 'none';
+
+      document.getElementById('tryAgain').addEventListener('click', function(ev){
+        ev.preventDefault();
+        form.style.display = 'block';
+        resultDiv.style.display = 'none';
+        form.reset();
+      });
+    });
+  </script>
 </body>
 </html>
