@@ -1,7 +1,7 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.dirname(__file__))
 
 QUESTIONS = [
     {"id": 1, "text": "What is the capital of France?", "a": "Paris", "b": "London", "c": "Berlin", "answer": "a"},
@@ -17,15 +17,9 @@ QUESTIONS = [
 ]
 
 
-def load_template():
-    path = os.path.join(os.path.dirname(__file__), 'index.html')
-    with open(path, 'r', encoding='utf-8') as f:
-        return f.read()
-
-
 @app.route('/')
 def index():
-    return render_template_string(load_template(), questions=QUESTIONS, score=None, total=len(QUESTIONS))
+    return render_template('index.html', questions=QUESTIONS, score=None, total=len(QUESTIONS))
 
 
 @app.route('/submit', methods=['POST'])
@@ -36,7 +30,7 @@ def submit():
         ans = request.form.get(key)
         if ans == q['answer']:
             score += 1
-    return render_template_string(load_template(), questions=QUESTIONS, score=score, total=len(QUESTIONS))
+    return render_template('index.html', questions=QUESTIONS, score=score, total=len(QUESTIONS))
 
 
 if __name__ == '__main__':
