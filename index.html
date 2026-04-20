@@ -7,6 +7,8 @@
     body { font-family: Arial, sans-serif; margin: 20px; }
     .q { margin-bottom: 12px; }
     #result h2 { color: #2b7a78; }
+    .choice { margin-left: 8px; }
+    button { padding: 8px 12px; font-size: 16px; }
   </style>
 </head>
 <body>
@@ -14,38 +16,51 @@
 
   <div id="result" style="display:none"></div>
 
-  <form id="quizForm" method="post" action="/submit">
-    {% for q in questions %}
-      <div class="q">
-        <strong>{{loop.index}}. {{q.text}}</strong><br>
-        <label><input type="radio" name="q{{q.id}}" value="a"> a) {{q.a}}</label><br>
-        <label><input type="radio" name="q{{q.id}}" value="b"> b) {{q.b}}</label><br>
-        <label><input type="radio" name="q{{q.id}}" value="c"> c) {{q.c}}</label><br>
-      </div>
-    {% endfor %}
+  <form id="quizForm">
+    <div id="questions"></div>
     <button type="submit">Submit</button>
   </form>
 
   <script>
-    // answers available from server-side QUESTIONS
-    const answers = {{ questions | tojson }};
+    // Static questions data for GitHub Pages (no server rendering)
+    const QUESTIONS = [
+      {"id":1,"text":"What is the capital of France?","a":"Paris","b":"London","c":"Berlin","answer":"a"},
+      {"id":2,"text":"Which planet is known as the Red Planet?","a":"Earth","b":"Mars","c":"Jupiter","answer":"b"},
+      {"id":3,"text":"What is 2 + 2?","a":"3","b":"4","c":"5","answer":"b"},
+      {"id":4,"text":"Which language is this website built with?","a":"Python","b":"Java","c":"C++","answer":"a"},
+      {"id":5,"text":"What color do you get by mixing red and white?","a":"Pink","b":"Green","c":"Blue","answer":"a"},
+      {"id":6,"text":"Which animal barks?","a":"Cat","b":"Cow","c":"Dog","answer":"c"},
+      {"id":7,"text":"Which month comes after June?","a":"May","b":"July","c":"August","answer":"b"},
+      {"id":8,"text":"How many legs does a spider have?","a":"6","b":"8","c":"10","answer":"b"},
+      {"id":9,"text":"What is the boiling point of water at sea level (°C)?","a":"100","b":"90","c":"80","answer":"a"},
+      {"id":10,"text":"Which gas do plants absorb?","a":"Oxygen","b":"Carbon Dioxide","c":"Nitrogen","answer":"b"}
+    ];
+
+    const questionsDiv = document.getElementById('questions');
+    QUESTIONS.forEach((q, idx) => {
+      const div = document.createElement('div');
+      div.className = 'q';
+      div.innerHTML = `<strong>${idx+1}. ${q.text}</strong><br>
+        <label class="choice"><input type="radio" name="q${q.id}" value="a"> a) ${q.a}</label><br>
+        <label class="choice"><input type="radio" name="q${q.id}" value="b"> b) ${q.b}</label><br>
+        <label class="choice"><input type="radio" name="q${q.id}" value="c"> c) ${q.c}</label><br>`;
+      questionsDiv.appendChild(div);
+    });
+
     const form = document.getElementById('quizForm');
     const resultDiv = document.getElementById('result');
 
     form.addEventListener('submit', function(e){
-      e.preventDefault(); // compute on client and avoid full POST
+      e.preventDefault();
       let score = 0;
-      for (let i = 0; i < answers.length; i++) {
-        const q = answers[i];
-        const name = 'q' + q.id;
-        const checked = form.querySelector('input[name="' + name + '"]:checked');
+      for (let i=0;i<QUESTIONS.length;i++){
+        const q = QUESTIONS[i];
+        const checked = document.querySelector('input[name="q'+q.id+'"]:checked');
         if (checked && checked.value === q.answer) score++;
       }
-
       resultDiv.style.display = 'block';
-      resultDiv.innerHTML = '<h2>Your score: ' + score + ' / ' + answers.length + '</h2><a href="#" id="tryAgain">Try again</a>';
+      resultDiv.innerHTML = `<h2>Your score: ${score} / ${QUESTIONS.length}</h2><a href="#" id="tryAgain">Try again</a>`;
       form.style.display = 'none';
-
       document.getElementById('tryAgain').addEventListener('click', function(ev){
         ev.preventDefault();
         form.style.display = 'block';
