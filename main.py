@@ -15,38 +15,13 @@ QUESTIONS = [
     {"id": 10, "text": "Which gas do plants absorb?", "a": "Oxygen", "b": "Carbon Dioxide", "c": "Nitrogen", "answer": "b"},
 ]
 
-TEMPLATE = """
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Simple MCQ Quiz</title>
-</head>
-<body>
-  <h1>MCQ Quiz (10 questions)</h1>
-  {% if score is not none %}
-    <h2>Your score: {{score}} / {{total}}</h2>
-    <a href="/">Try again</a>
-  {% else %}
-    <form method="post" action="/submit">
-      {% for q in questions %}
-        <div style="margin-bottom:12px;">
-          <strong>{{loop.index}}. {{q.text}}</strong><br>
-          <label><input type="radio" name="q{{q.id}}" value="a"> a) {{q.a}}</label><br>
-          <label><input type="radio" name="q{{q.id}}" value="b"> b) {{q.b}}</label><br>
-          <label><input type="radio" name="q{{q.id}}" value="c"> c) {{q.c}}</label><br>
-        </div>
-      {% endfor %}
-      <button type="submit">Submit</button>
-    </form>
-  {% endif %}
-</body>
-</html>
-"""
+# template moved to index.html
+TEMPLATE = None
+
 
 @app.route('/')
 def index():
-    return render_template_string(TEMPLATE, questions=QUESTIONS, score=None, total=len(QUESTIONS))
+    return render_template_string(open('index.html').read(), questions=QUESTIONS, score=None, total=len(QUESTIONS))
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -56,7 +31,7 @@ def submit():
         ans = request.form.get(key)
         if ans == q['answer']:
             score += 1
-    return render_template_string(TEMPLATE, questions=QUESTIONS, score=score, total=len(QUESTIONS))
+    return render_template_string(open('index.html').read(), questions=QUESTIONS, score=score, total=len(QUESTIONS))
 
 if __name__ == '__main__':
     app.run(debug=True)
