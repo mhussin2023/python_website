@@ -2,24 +2,67 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Simple MCQ Quiz</title>
+  <title>MCQ Quiz — Colorful</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .q { margin-bottom: 12px; }
-    #result h2 { color: #2b7a78; }
-    .choice { margin-left: 8px; }
-    button { padding: 8px 12px; font-size: 16px; }
+    :root{
+      --bg1: #0f172a; /* midnight */
+      --bg2: #1e293b; /* slate */
+      --card: rgba(255,255,255,0.06);
+      --accent: #ff7b54; /* warm orange */
+      --accent-2: #3ad29f; /* mint */
+      --muted: #94a3b8;
+      --white: #ffffff;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: linear-gradient(135deg,var(--bg1),var(--bg2)); color:var(--white);
+      display:flex; align-items:center; justify-content:center; padding:32px;
+    }
+    .wrapper{width:100%;max-width:900px;background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:12px; padding:28px; box-shadow: 0 8px 30px rgba(2,6,23,0.6);}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+    .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:4px 0 0;color:var(--muted)}
+
+    #questions{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .q{background:var(--card);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+    .q strong{display:block;margin-bottom:8px;color:var(--white)}
+    .choice{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;margin-bottom:8px;cursor:pointer;background:transparent}
+    .choice:hover{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))}
+    input[type="radio"]{accent-color:var(--accent);width:18px;height:18px}
+
+    .controls{display:flex;align-items:center;justify-content:space-between;margin-top:18px}
+    button{background:linear-gradient(90deg,var(--accent),#ff9b78);border:none;padding:10px 18px;border-radius:10px;color:#fff;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(255,123,84,0.18)}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);box-shadow:none;color:var(--white);}
+
+    #result{margin-top:12px;padding:16px;border-radius:10px;background:linear-gradient(90deg, rgba(58,210,159,0.12), rgba(47,128,237,0.06));color:var(--white);text-align:center}
+    #result h2{margin:0 0 8px;color:#bff4d5}
+
+    @media (max-width:700px){#questions{grid-template-columns:1fr} .wrapper{padding:18px}}
   </style>
 </head>
 <body>
-  <h1>MCQ Quiz (10 questions)</h1>
+  <div class="wrapper">
+    <header>
+      <div class="logo">QZ</div>
+      <div>
+        <h1>MCQ Quiz — 10 Questions</h1>
+        <p class="lead">Choose the best answer for each question and press Submit.</p>
+      </div>
+    </header>
 
-  <div id="result" style="display:none"></div>
+    <form id="quizForm">
+      <div id="questions"></div>
+      <div class="controls">
+        <button type="submit">Submit</button>
+        <button type="button" class="secondary" id="resetBtn">Reset</button>
+      </div>
+    </form>
 
-  <form id="quizForm">
-    <div id="questions"></div>
-    <button type="submit">Submit</button>
-  </form>
+    <div id="result" style="display:none"></div>
+  </div>
 
   <script>
     // Static questions data for GitHub Pages (no server rendering)
@@ -40,15 +83,25 @@
     QUESTIONS.forEach((q, idx) => {
       const div = document.createElement('div');
       div.className = 'q';
-      div.innerHTML = `<strong>${idx+1}. ${q.text}</strong><br>
-        <label class="choice"><input type="radio" name="q${q.id}" value="a"> a) ${q.a}</label><br>
-        <label class="choice"><input type="radio" name="q${q.id}" value="b"> b) ${q.b}</label><br>
-        <label class="choice"><input type="radio" name="q${q.id}" value="c"> c) ${q.c}</label><br>`;
+      div.innerHTML = ` <strong>${idx+1}. ${q.text}</strong>
+        <label class="choice"><input type="radio" name="q${q.id}" value="a"> a) ${q.a}</label>
+        <label class="choice"><input type="radio" name="q${q.id}" value="b"> b) ${q.b}</label>
+        <label class="choice"><input type="radio" name="q${q.id}" value="c"> c) ${q.c}</label>`;
       questionsDiv.appendChild(div);
     });
 
     const form = document.getElementById('quizForm');
     const resultDiv = document.getElementById('result');
+    const resetBtn = document.getElementById('resetBtn');
+
+    function showResult(score){
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = `<h2>Your score: ${score} / ${QUESTIONS.length}</h2><p style="color:var(--muted)">Thanks for taking the quiz.</p><div style="margin-top:8px"><button id=\"tryAgain\" style=\"padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.06);color:var(--white);cursor:pointer\">Try again</button></div>`;
+      form.style.display = 'none';
+      document.getElementById('tryAgain').addEventListener('click', function(ev){
+        ev.preventDefault(); form.style.display = 'block'; resultDiv.style.display = 'none'; form.reset(); window.scrollTo({top:0,behavior:'smooth'});
+      });
+    }
 
     form.addEventListener('submit', function(e){
       e.preventDefault();
@@ -58,16 +111,10 @@
         const checked = document.querySelector('input[name="q'+q.id+'"]:checked');
         if (checked && checked.value === q.answer) score++;
       }
-      resultDiv.style.display = 'block';
-      resultDiv.innerHTML = `<h2>Your score: ${score} / ${QUESTIONS.length}</h2><a href="#" id="tryAgain">Try again</a>`;
-      form.style.display = 'none';
-      document.getElementById('tryAgain').addEventListener('click', function(ev){
-        ev.preventDefault();
-        form.style.display = 'block';
-        resultDiv.style.display = 'none';
-        form.reset();
-      });
+      showResult(score);
     });
+
+    resetBtn.addEventListener('click', function(){ form.reset(); window.scrollTo({top:0,behavior:'smooth'}); });
   </script>
 </body>
 </html>
