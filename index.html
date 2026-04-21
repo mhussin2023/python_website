@@ -101,6 +101,7 @@
     const form = document.getElementById('quizForm');
     const resultDiv = document.getElementById('result');
     const resetBtn = document.getElementById('resetBtn');
+    const submitBtn = form.querySelector('button[type="submit"]');
 
     function clearHighlights(){
       document.querySelectorAll('.choice').forEach(l=>{ l.classList.remove('correct','selected-correct','selected-wrong'); });
@@ -109,6 +110,8 @@
     }
 
     function showResult(score){
+      // disable submit while results are shown
+      if(submitBtn) submitBtn.disabled = true;
       resultDiv.style.display = 'block';
       resultDiv.innerHTML = `<h2>Your score: ${score} / ${QUESTIONS.length}</h2><p style="color:var(--muted)">Thanks for taking the quiz.</p><div style="margin-top:8px"><button id=\"tryAgain\" style=\"padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer\">Try again</button></div>`;
       document.getElementById('tryAgain').addEventListener('click', function(ev){
@@ -117,6 +120,7 @@
         resultDiv.style.display = 'none';
         clearHighlights();
         form.reset();
+        if(submitBtn) submitBtn.disabled = false;
         window.scrollTo({top:0,behavior:'smooth'});
       });
     }
