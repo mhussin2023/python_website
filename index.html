@@ -42,6 +42,13 @@
     #result h2{margin:0 0 8px;color:var(--success)}
 
     @media (max-width:700px){#questions{grid-template-columns:1fr} .wrapper{padding:18px}}
+
+    /* result/answer classes */
+    .choice.correct{background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.18)}
+    .choice.selected-correct{background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.25)}
+    .choice.selected-wrong{background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.18)}
+    .q strong.wrong{color: #ef4444;} /* red */
+    .q strong.correct-head{color: var(--success);}  
   </style>
 </head>
 <body>
@@ -95,27 +102,60 @@
     const resultDiv = document.getElementById('result');
     const resetBtn = document.getElementById('resetBtn');
 
+    function clearHighlights(){
+      document.querySelectorAll('.choice').forEach(l=>{ l.classList.remove('correct','selected-correct','selected-wrong'); });
+      document.querySelectorAll('.q strong').forEach(h=>{ h.classList.remove('wrong','correct-head'); });
+      document.querySelectorAll('input[type="radio"]').forEach(inp=>{ inp.disabled = false; });
+    }
+
     function showResult(score){
       resultDiv.style.display = 'block';
-      resultDiv.innerHTML = `<h2>Your score: ${score} / ${QUESTIONS.length}</h2><p style="color:var(--muted)">Thanks for taking the quiz.</p><div style="margin-top:8px"><button id=\"tryAgain\" style=\"padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.06);color:var(--white);cursor:pointer\">Try again</button></div>`;
-      form.style.display = 'none';
+      resultDiv.innerHTML = `<h2>Your score: ${score} / ${QUESTIONS.length}</h2><p style="color:var(--muted)">Thanks for taking the quiz.</p><div style="margin-top:8px"><button id=\"tryAgain\" style=\"padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer\">Try again</button></div>`;
       document.getElementById('tryAgain').addEventListener('click', function(ev){
-        ev.preventDefault(); form.style.display = 'block'; resultDiv.style.display = 'none'; form.reset(); window.scrollTo({top:0,behavior:'smooth'});
+        ev.preventDefault();
+        form.style.display = 'block';
+        resultDiv.style.display = 'none';
+        clearHighlights();
+        form.reset();
+        window.scrollTo({top:0,behavior:'smooth'});
       });
     }
 
     form.addEventListener('submit', function(e){
       e.preventDefault();
       let score = 0;
-      for (let i=0;i<QUESTIONS.length;i++){
-        const q = QUESTIONS[i];
-        const checked = document.querySelector('input[name="q'+q.id+'"]:checked');
-        if (checked && checked.value === q.answer) score++;
-      }
+      QUESTIONS.forEach((q)=>{
+        const sel = document.querySelector('input[name="q'+q.id+'"]:checked');
+        const selVal = sel ? sel.value : null;
+        const head = document.querySelector('input[name="q'+q.id+'"]')?.closest('.q')?.querySelector('strong');
+        ['a','b','c'].forEach(val=>{
+          const inp = document.querySelector('input[name="q'+q.id+'"][value="'+val+'"]');
+          const lab = inp ? inp.closest('label') : null;
+          if(!lab) return;
+          // mark correct
+          if(val === q.answer){ lab.classList.add('correct'); }
+          // mark selected
+          if(selVal === val){
+            if(val === q.answer){ lab.classList.add('selected-correct'); score++; }
+            else { lab.classList.add('selected-wrong'); }
+          }
+          // disable input
+          if(inp) inp.disabled = true;
+        });
+        if(selVal !== q.answer){ if(head) head.classList.add('wrong'); } else { if(head) head.classList.add('correct-head'); }
+      });
+      form.style.display = 'block'; // keep visible to show highlights
       showResult(score);
+      window.scrollTo({top:0,behavior:'smooth'});
     });
 
-    resetBtn.addEventListener('click', function(){ form.reset(); window.scrollTo({top:0,behavior:'smooth'}); });
+    resetBtn.addEventListener('click', function(){
+      clearHighlights();
+      form.reset();
+      resultDiv.style.display = 'none';
+      form.style.display = 'block';
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
   </script>
 </body>
 </html>
